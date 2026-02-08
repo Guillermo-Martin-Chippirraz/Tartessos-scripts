@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro;
 using System.Collections;
 using UnityEngine.InputSystem; // nuevo Input System
+using UnityEngine.SceneManagement;
 
 public class ApiController : MonoBehaviour
 {
@@ -13,15 +14,28 @@ public class ApiController : MonoBehaviour
     public TMP_InputField loginPasswordField;
     public TMP_Text feedbackText;
     public TextMeshProUGUI bienvenidaText;
+    public TextMeshProUGUI pulsaParaEntrarText;
+
+    public Camera camera;
+    public float distancia = 10f;
+    public float duracion = 0.8f;
+    public string siguienteEscena ="MenuPartida";
+
+    private bool loginCompletado = false;
+
 
     // Acción de entrada para detectar click
     private InputAction clickAction;
 
     private void Awake()
     {
-        // Configuramos la acción para el botón izquierdo del ratón
         clickAction = new InputAction(type: InputActionType.Button, binding: "<Mouse>/leftButton");
+
+        // 🔥 Desactivar textos desde el inicio
+        bienvenidaText.gameObject.SetActive(false);
+        pulsaParaEntrarText.gameObject.SetActive(false);
     }
+
 
     private void OnEnable()
     {
@@ -45,6 +59,7 @@ public class ApiController : MonoBehaviour
         {
             if (succes)
             {
+                loginCompletado = true;
                 PlayerPrefs.SetString("jwt_token", tokenOrMessage);
                 PlayerPrefs.Save();
                 MostrarBienvenida("¡Bienvenido/a/e de nuevo, " + identifier + "!");
@@ -93,17 +108,46 @@ public class ApiController : MonoBehaviour
 
     private void MostrarBienvenida(string mensaje)
     {
+        if (!loginCompletado) return;
+
         bienvenidaText.text = mensaje + "\n\nHaz click en cualquier lugar para continuar";
         bienvenidaText.gameObject.SetActive(true);
+
+        pulsaParaEntrarText.text = "Pulsa para entrar";
+        pulsaParaEntrarText.gameObject.SetActive(true);
     }
 
     // Callback del nuevo Input System
     private void OnClickPerformed(InputAction.CallbackContext ctx)
     {
-        if (bienvenidaText.gameObject.activeSelf)
+        if (!loginCompletado) return;
+        
+        if (pulsaParaEntrarText.gameObject.activeSelf)
         {
+            pulsaParaEntrarText.gameObject.SetActive(false);
             bienvenidaText.gameObject.SetActive(false);
-            navigation.IrALogin();
+            
+            StartCoroutine(TransicionEntrada());
         }
+    }
+
+    private IEnumerator TransicionEntrada()
+    {
+        Vector3 inicio = camera.transform.position;
+        Vector3 destino = inicio + camera.transform.forward * distancia;
+
+        float tiempo = 0f;
+
+        while(tiempo < duracion)
+        {
+            tiempo += Time.deltaTime;
+            float t = tiempo / duracion;
+
+            camera.transform.position = Vector3.Lerp(inicio, destino, t);
+
+            yield return null;
+        }
+
+        SceneManager.LoadScene(siguienteEscena);
     }
 }

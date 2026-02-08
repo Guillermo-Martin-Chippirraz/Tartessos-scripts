@@ -7,6 +7,21 @@ public class ApiClient : MonoBehaviour
 {
     public static string baseURL = "http://localhost:3000";
 
+    public static ApiClient Instance;
+
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
     public IEnumerator GetPerfil()
     {
         string token = PlayerPrefs.GetString("jwt_token", "");
@@ -328,87 +343,6 @@ public class LoginRequest { public string identifier; public string password; }
                 callback?.Invoke(false, null, "Error de red: " + www.error);
             }
         }
-    }
-
-    [System.Serializable]
-    public class GameStateResponse
-    {
-        public Partida partida;
-        public PerfilData perfil;
-        public PersonajeData[] personajes;
-        public InventarioData inventario;
-        public ItemData[] items;
-        public MonederoData monedero;
-        public MonedaData[] monedas;
-    }
-
-    [System.Serializable]
-    public class Partida
-    {
-        public int id_partida;
-        public string estado;
-        public int nivel_aventura;
-        public int nivel_mundo;
-        public string fecha_inicio;
-        public string ultimo_guardado;
-        public string snapshot_url;
-        public int id_monedero;
-        public int id_inventario;
-    }
-
-    [System.Serializable]
-    public class PerfilData
-    {
-        public int id_perfil;
-        public string avatar;
-        public string idioma;
-        public bool modo_accesible;
-        public int id_usuario;
-        public int id_partida;
-    }
-
-    [System.Serializable] 
-    public class PersonajeData 
-    { 
-        public int id_personaje; 
-        public string nombre; 
-        public int nivel; 
-        public string raza; 
-        public string clase; 
-        public int experiencia; 
-        public bool activo_en_equipo; 
-    } 
-
-    [System.Serializable] 
-    public class InventarioData 
-    { 
-        public int id_inventario; 
-        public int cantidad; 
-    } 
-
-    [System.Serializable] 
-    public class ItemData 
-    { 
-        public int id_item; 
-        public string nombre; 
-        public string descripcion; 
-        public string rareza; 
-        public int precio; 
-        public string tipo_de_item; 
-    } 
-    
-    [System.Serializable] 
-    public class MonederoData 
-    { 
-        public int id_monedero; 
-    } 
-    
-    [System.Serializable] 
-    public class MonedaData 
-    { 
-        public int id_moneda; 
-        public string nombre; 
-        public int saldo; 
     }
 
     public static UnityWebRequest AuthGet(string url)
